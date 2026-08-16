@@ -1,0 +1,44 @@
+name: test-and-deploy
+
+on:
+  push:
+    branches: [boiler_code]
+
+permissions:
+  id-token: write # required for GitHub's OIDC token
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::762233737865:role/github-actions-role
+          aws-region: us-east-1
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+
+      - run: |
+          docker build -t mini-api .
+          docker tag mini-api:latest ${{ steps.ecr.outputs.registry }}/mini-api:latest
+          docker push ${{ steps.ecr.outputs.registry }}/mini-api:latest
+
+      - run: |
+          aws lambda update-function-code \
+            --function-name mini-api \
+            --image-uri ${{ steps.ecr.outputs.registry }}/mini-api:latest
