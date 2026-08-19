@@ -19,10 +19,6 @@ A minimal end-to-end pipeline built to learn REST APIs and CI/CD fundamentals: a
 
 - `boiler_code` — active development branch
 
-## Setup / Deployment notes
-
-- AWS interactions are done via **AWS CloudShell** rather than a local AWS CLI install, due to credential/token issues encountered locally.
-- [Add specific setup steps here: env vars, IAM role/permissions needed, how to trigger the workflow manually if applicable.]
 
 ## Status
 
